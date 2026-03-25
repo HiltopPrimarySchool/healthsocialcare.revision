@@ -70,7 +70,6 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* --- THE REST OF YOUR CSS REMAINS THE SAME --- */
         .grade-badge { background: var(--gold); color: #000; padding: 5px 15px; border-radius: 50px; font-weight: 900; font-size: 0.8rem; }
         .selector-bar { display: flex; justify-content: center; gap: 8px; padding: 10px; background: rgba(0,0,0,0.5); flex-wrap: wrap; }
         .filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.7rem; font-weight: 700; transition: 0.2s; }
@@ -87,9 +86,23 @@
         .face-front { background: var(--glass); border-color: var(--secondary); }
         .face-back { background: var(--primary); transform: rotateY(180deg); font-size: 1.1rem; }
         .exam-panel { background: var(--glass); padding: 25px; border-radius: 25px; width: 100%; border: 1px solid rgba(255,255,255,0.1); box-sizing: border-box;}
-        .q-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-bottom: 15px; }
-        .q-num { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size: 0.7rem; padding: 6px; border-radius: 5px; cursor: pointer; text-align: center; }
-        .q-num.active { border-color: var(--secondary); background: rgba(6, 182, 212, 0.2); }
+        
+        /* UPDATED SELECTOR STYLE */
+        .q-selector-container { margin-bottom: 20px; width: 100%; }
+        .q-dropdown { 
+            width: 100%; 
+            background: rgba(15, 23, 42, 0.8); 
+            color: var(--text); 
+            border: 1px solid var(--secondary); 
+            padding: 10px; 
+            border-radius: 10px; 
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+        .q-dropdown option { background: #0f172a; }
+
         .editor { width: 100%; min-height: 120px; background: #000; border: 1px solid #334155; border-radius: 15px; padding: 15px; color: white; font-family: inherit; margin: 15px 0; resize: none; box-sizing: border-box; }
         .btn { padding: 12px 24px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
         .btn-p { background: var(--secondary); color: #000; }
@@ -110,6 +123,7 @@
 </header>
 
 <div class="selector-bar">
+    <button class="filter-btn" onclick="setTopic('ALL', this)">ALL TOPICS</button>
     <button class="filter-btn" onclick="setTopic('LO1', this)">LO1: RIGHTS</button>
     <button class="filter-btn" onclick="setTopic('LO2', this)">LO2: LAWS</button>
     <button class="filter-btn" onclick="setTopic('LO3', this)">LO3: COMMS</button>
@@ -143,7 +157,10 @@
 
     <div id="view-exam" class="view">
         <div class="exam-panel">
-            <div class="q-grid" id="ex-grid"></div>
+            <div class="q-selector-container">
+                <select id="ex-dropdown" class="q-dropdown" onchange="eIdx = parseInt(this.value); updateEX();"></select>
+            </div>
+            
             <div style="display:flex; justify-content:space-between; color:var(--secondary); font-weight:800; font-size:0.8rem;">
                 <span id="ex-tag">UNIT</span>
                 <span id="ex-count">Question 1 / 30</span>
@@ -183,7 +200,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/tsparticles-confetti@2.12.0/tsparticles.confetti.bundle.min.js"></script>
 <script>
-// --- DATA AND SCRIPT REMAIN IDENTICAL TO PREVIOUS VERSION ---
 const DATA = {
     LO1: {
         terms: [
@@ -571,15 +587,15 @@ function updateFC() {
 function moveFC(d) { fIdx = (fIdx + d + fList.length) % fList.length; updateFC(); }
 function masterFC() { score += 2; tMax += 2; updateGrade(); moveFC(1); confetti(); }
 
+// UPDATED: POPULATES DROPDOWN INSTEAD OF GRID
 function renderGrid() {
-    const g = document.getElementById('ex-grid');
-    g.innerHTML = '';
-    eList.forEach((_, i) => {
-        const n = document.createElement('div');
-        n.className = 'q-num';
-        n.innerText = i + 1;
-        n.onclick = () => { eIdx = i; updateEX(); };
-        g.appendChild(n);
+    const dropdown = document.getElementById('ex-dropdown');
+    dropdown.innerHTML = '';
+    eList.forEach((q, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = `Q${i + 1}: ${q.q.substring(0, 50)}...`;
+        dropdown.appendChild(opt);
     });
 }
 
@@ -589,7 +605,7 @@ function updateEX() {
     document.getElementById('ex-count').innerText = `Question ${eIdx + 1} / ${eList.length}`;
     document.getElementById('ex-question').innerText = q.q;
     document.getElementById('ex-ans').value = "";
-    document.querySelectorAll('.q-num').forEach((n, i) => n.classList.toggle('active', i === eIdx));
+    document.getElementById('ex-dropdown').value = eIdx;
 }
 
 function moveEX(d) { eIdx = (eIdx + d + eList.length) % eList.length; updateEX(); }
